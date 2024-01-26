@@ -5,6 +5,7 @@ import 'package:test_project/entities/ticker.dart';
 import 'package:test_project/presentation/blocs/timer_bloc/timer_bloc.dart';
 import 'package:test_project/presentation/pages/pages.dart';
 import 'package:test_project/presentation/widgets/widgets.dart';
+import 'package:test_project/servicies/auth_service.dart';
 
 class SubmitionPage extends StatefulWidget {
   const SubmitionPage({required this.phoneNumber, super.key});
@@ -22,33 +23,50 @@ class _SubmitionPageState extends State<SubmitionPage> {
   String? three;
   String? four;
   String? five;
+  String? six;
   late List<String?> _symbols;
 
   @override
   void initState() {
-    _symbols = List.generate(5, (index) => null);
+    _symbols = List.generate(6, (index) => null);
     _controller = TextEditingController();
-    _symbols = [one, two, three, four, five];
-    _controller.addListener(() {
-      setState(
-        () {
-          _symbols = List.generate(5, (index) => null);
-          final symbols = _controller.text.split('');
-          for (var i = 0; i < symbols.length; i++) {
-            _symbols[i] = symbols[i];
-          }
-          if (_symbols[4] != null) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute<void>(
-                builder: (context) => const MainPage(),
-              ),
-              (Route<dynamic> route) => false,
+    _symbols = [one, two, three, four, five, six];
+    _controller.addListener(
+      () {
+        setState(
+          () {
+            _symbols = List.generate(6, (index) => null);
+            final symbols = _controller.text.split('');
+            for (var i = 0; i < symbols.length; i++) {
+              _symbols[i] = symbols[i];
+            }
+            AuthService.loginWithOtp(otp: _controller.text).then(
+              (value) {
+                if (value == 'Success') {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (context) => const MainPage(),
+                    ),
+                    (Route<dynamic> route) => false,
+                  );
+                } else if (_symbols[5] != null && value != 'Success') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        value,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
             );
-          }
-        },
-      );
-    });
+          },
+        );
+      },
+    );
     super.initState();
   }
 
@@ -88,41 +106,46 @@ class _SubmitionPageState extends State<SubmitionPage> {
             ),
           ),
           const SizedBox(height: 20),
-          Visibility.maintain(
-            visible: false,
-            child: SizedBox(
-              height: 10,
-              child: TextField(
-                keyboardType: TextInputType.number,
-                maxLength: 5,
-                controller: _controller,
-                autofocus: true,
-              ),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: _symbols.map((e) {
-              return Padding(
-                padding: const EdgeInsets.all(10),
-                child: Container(
-                  width: 40,
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Color.fromRGBO(167, 167, 167, 1),
+          Stack(
+            alignment: AlignmentDirectional.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: _symbols.map((e) {
+                  return Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Container(
+                      width: 40,
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Color.fromRGBO(167, 167, 167, 1),
+                          ),
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          e ?? '',
+                          style: const TextStyle(fontSize: 28),
+                        ),
                       ),
                     ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      e ?? '',
-                      style: const TextStyle(fontSize: 28),
-                    ),
+                  );
+                }).toList(),
+              ),
+              Visibility.maintain(
+                visible: false,
+                child: SizedBox(
+                  height: 20,
+                  child: TextField(
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    controller: _controller,
+                    autofocus: true,
                   ),
                 ),
-              );
-            }).toList(),
+              ),
+            ],
           ),
           const SizedBox(height: 40),
           BlocProvider(
@@ -147,6 +170,11 @@ class _SubmitionPageState extends State<SubmitionPage> {
                           context.read<TimerBloc>().add(
                                 const TimerStarted(duration: 60),
                               );
+                          AuthService.sentOtp(
+                              phone: widget.phoneNumber, errorStep: () {});
+                          setState(() {
+                            _controller.text = '';
+                          });
                         },
                         child: const Text(
                           'Отправить код еще раз',

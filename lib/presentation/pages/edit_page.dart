@@ -58,6 +58,7 @@ class _EditPageState extends State<EditPage> {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 25),
         child: CupertinoTextField(
+          textCapitalization: TextCapitalization.words,
           controller: _textController,
           onChanged: (value) {
             final bloc = context.read<ProfileCubit>();

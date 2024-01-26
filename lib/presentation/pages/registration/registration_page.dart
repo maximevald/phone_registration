@@ -6,9 +6,10 @@ import 'package:test_project/presentation/blocs/registration_cubit/registration_
 import 'package:test_project/presentation/pages/pages.dart';
 
 import 'package:test_project/presentation/widgets/registration/registration_widgets.dart';
+import 'package:test_project/servicies/auth_service.dart';
 
 final maskFormatter = MaskTextInputFormatter(
-  mask: '+7 (###) ### ## ##',
+  mask: ' (###) ### ## ##',
   filter: {'#': RegExp('[0-9]')},
 );
 
@@ -16,7 +17,7 @@ class RegistrationPage extends StatelessWidget {
   RegistrationPage({super.key});
 
   final TextEditingController _phoneController =
-      TextEditingController(text: '+7');
+      TextEditingController(text: ' ');
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +75,12 @@ class RegistrationPage extends StatelessWidget {
                           TextField(
                             cursorColor: textColor,
                             decoration: InputDecoration(
+                              prefix: Text(
+                                '+7',
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w400),
+                              ),
                               isDense: true,
                               enabledBorder: OutlineInputBorder(
                                 borderSide: const BorderSide(
@@ -107,10 +114,26 @@ class RegistrationPage extends StatelessWidget {
                         return ElevatedButton(
                           onPressed: isAvailable
                               ? () {
+                                  AuthService.sentOtp(
+                                    phone: '+7${_phoneController.text}',
+                                    errorStep: () =>
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "Error in sending OTP",
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    ),
+                                  );
+
                                   Navigator.of(context).push(
                                     MaterialPageRoute<void>(
                                       builder: (context) => SubmitionPage(
-                                        phoneNumber: _phoneController.text,
+                                        phoneNumber:
+                                            '+7${_phoneController.text}',
                                       ),
                                     ),
                                   );
