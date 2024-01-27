@@ -18,19 +18,12 @@ class SubmitionPage extends StatefulWidget {
 
 class _SubmitionPageState extends State<SubmitionPage> {
   late final TextEditingController _controller;
-  String? one;
-  String? two;
-  String? three;
-  String? four;
-  String? five;
-  String? six;
   late List<String?> _symbols;
 
   @override
   void initState() {
     _symbols = List.generate(6, (index) => null);
     _controller = TextEditingController();
-    _symbols = [one, two, three, four, five, six];
     _controller.addListener(
       () {
         setState(
@@ -40,29 +33,31 @@ class _SubmitionPageState extends State<SubmitionPage> {
             for (var i = 0; i < symbols.length; i++) {
               _symbols[i] = symbols[i];
             }
-            AuthService.loginWithOtp(otp: _controller.text).then(
-              (value) {
-                if (value == 'Success') {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (context) => const MainPage(),
-                    ),
-                    (Route<dynamic> route) => false,
-                  );
-                } else if (_symbols[5] != null && value != 'Success') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        value,
-                        style: TextStyle(color: Colors.white),
+            if (_controller.text.length == 6) {
+              AuthService.loginWithOtp(otp: _controller.text).then(
+                (value) {
+                  if (value == 'Success') {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (context) => const MainPage(),
                       ),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-            );
+                      (Route<dynamic> route) => false,
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          value,
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+              );
+            }
           },
         );
       },
@@ -171,7 +166,9 @@ class _SubmitionPageState extends State<SubmitionPage> {
                                 const TimerStarted(duration: 60),
                               );
                           AuthService.sentOtp(
-                              phone: widget.phoneNumber, errorStep: () {});
+                              phone:
+                                  '+${maskFormatter.unmaskText(widget.phoneNumber)}',
+                              errorStep: () {});
                           setState(() {
                             _controller.text = '';
                           });

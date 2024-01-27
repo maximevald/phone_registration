@@ -115,7 +115,8 @@ class RegistrationPage extends StatelessWidget {
                           onPressed: isAvailable
                               ? () {
                                   AuthService.sentOtp(
-                                    phone: '+7${_phoneController.text}',
+                                    phone:
+                                        '+7${maskFormatter.unmaskText(_phoneController.text)}',
                                     errorStep: () =>
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
